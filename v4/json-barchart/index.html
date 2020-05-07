@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Document</title>
+    <style>
+        html{
+            background-color: #143948;
+        }
+        .x_axis path,
+        .x_axis line{
+            stroke-width: 2px;
+            fill: none;
+            stroke: white;
+            shape-rendering: crispEdges;
+        }
+
+        .x_axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+        .y_axis path,
+        .y_axis line{
+            stroke-width: 2px;
+            fill: none;
+            stroke: white;
+            shape-rendering: crispEdges;
+        }
+        .y_axis text {
+            font-family: sans-serif;
+            font-size: 11px;
+        }
+
+        .line {
+            fill: none;
+            stroke-width: 1px;
+        }
+    </style>
+</head>
+<body>
+<div id="container"></div>
+<button type="button" onclick="t()">aa</button>
+<script type="text/javascript" src="//d3js.org/d3.v4.min.js"></script>
+<script>
+    var doNotHighlight = function (d) {
+        console.log(d)
+    }
+</script>
+<script>
+    // svg绘制区域的宽度
+    let width = 820;
+    // svg绘制区域的高度
+    let height = 400;
+
+    var xAxis,yAxis;
+    // 选择body
+    let svg = d3.select('#container')
+    // 添加svg
+        .append('svg')
+        // 设置svg的宽度属性
+        .attr('width', width)
+        // 设置svg的高度属性
+        .attr('height', height);
+    // 定义上下左右的边距
+    let padding = {
+        top: 50,
+        right: 20,
+        bottom: 20,
+        left: 40
+    };
+    var colors = [
+        'purple',
+        'steelblue',
+        'green',
+        'red',
+    ];
+    let rectPadding = 15;
+    // 矩形所占宽度（包括百空）， 单位像素
+    let rectStep = 30;
+    // 矩形所占宽度（不包括百空）， 单位像素
+    function draw (dataset) {
+
+        var data = [];
+
+        for(var i=0;i<dataset.length;i++){
+            data.push({'x':dataset[i].month,'y':dataset[i].value});
+        }
+        data = [data];
+        // console.log(data);
+
+
+        //x轴的比例尺
+        // var xScale = d3.scale.ordinal()
+        //     .domain(dataset.map(function(d) { return d.month; }))
+        //     .rangeRoundBands([0, width - padding.left - padding.right]);
+
+        var xScale = d3.scaleBand()
+            .domain(dataset.map(function(d) { return d.month; }))
+            .rangeRound([0, width - padding.left - padding.right]);
+
+
+        //y轴的比例尺
+        // var yScale = d3.scale.linear()
+        //     .domain([0, d3.max(dataset, function(d) { return d.value; })])
+        //     .range([height - padding.top - padding.bottom, 0]);
+
+        var yScale = d3.scaleLinear()
+            .domain([0, d3.max(dataset, function(d) { return d.value; })])
+            .range([height - padding.top - padding.bottom, 0]);
+
+
+        // 获取矩形的update部分
+        let updateRect = svg.selectAll('rect')
+            .data(dataset);
+        // 获取矩形的enter部分
+        let enterRect = updateRect.enter();
+        // 获取矩形的exit部分
+        let exitRect = updateRect.exit();
+
+
+        // 矩形的update部分的处理方法
+        // 设置颜色为steelbule
+        updateRect.attr('fill', 'steelblue')
+            .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+            // 设置矩形的x坐标
+            .attr('x', function (d) {
+                return xScale(d.month) + rectPadding/2;
+            })
+            // 设置矩形的y坐标
+            .attr('y', function (d) {
+                var min = yScale.domain()[0];
+                return yScale(min);
+            })
+            // 设置矩形的宽度
+            .attr('width', xScale.bandwidth() - rectPadding)
+            // 设置矩形的高度
+            .attr('height', function (d) {
+                return 0;
+            })
+            .transition()
+            .delay(function(d, i){
+                return i * 20;
+            })
+            .duration(2000)
+            .ease(d3.easeBounce)
+            .attr('y', function (d) {
+                return yScale(d.value);
+            })
+            .attr("height", function(d){
+                return height - padding.top - padding.bottom - yScale(d.value);
+            });
+        // 设置矩形的y坐标
+
+        // 矩形的enter部分的处理方法
+        // 设置矩形颜色为steelblue
+        enterRect.append('rect')
+        // 设置颜色为steelbule
+            .attr('fill', 'steelblue')
+            .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+            // 设置矩形的x坐标
+            .attr('x', function (d) {
+                return xScale(d.month) + rectPadding/2;
+            })
+            // 设置矩形的y坐标
+            .attr('y', function (d) {
+                var min = yScale.domain()[0];
+                return yScale(min);
+            })
+            // 设置矩形的宽度
+            .attr('width', xScale.bandwidth() - rectPadding)
+            // 设置矩形的高度
+            .attr('height', function (d) {
+                return 0;
+            })
+            .transition()
+            .delay(function(d,i){
+                return i * 20;
+            })
+            .duration(2000)
+            .ease(d3.easeBounce)
+            // 设置矩形的y坐标
+            .attr('y', function (d) {
+                return yScale(d.value);
+            })
+            .attr("height", function(d){
+                return height - padding.top - padding.bottom - yScale(d.value);
+            })
+        ;
+
+        // 矩形的exit部分的处理方法
+        exitRect.remove();
+
+
+        // 获取文字的update部分
+        let updateText = svg.selectAll('text')
+            .data(dataset);
+        // 获取文字的enter部分
+        let enterText = updateText.enter();
+        // 获取文字的exit部分
+        let exitText = updateText.exit();
+        // 设置文字填充色
+        updateText.attr('fill', 'white')
+            .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+            // 设置字体大小
+            .attr('font-size', '15px')
+            // 后续为文字设置为矩形正中间
+            .attr('text-anchor', 'middle')
+            // 设置x的与矩形一样
+            .attr('x', function (d, i) {
+                return xScale(d.month) + rectPadding/2;
+            })
+            // 设置y的与矩形一样
+            .attr('dx', (xScale.bandwidth() - rectPadding)/2)
+            .attr('dy', '1em')
+            // 设置文字内容
+            .text(function (d) {
+                return d.value;
+            })
+            .attr("y",function(d){
+                var min = yScale.domain()[0];
+                return yScale(min);
+            })
+            .transition()
+            .delay(function(d,i){
+                return i * 20;
+            })
+            .duration(2000)
+            .ease(d3.easeBounce)
+            .attr("y",function(d){
+                return yScale(d.value)-30;
+            });
+
+        enterText.append('text')
+            .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+            // 设置文字填充色
+            .attr('fill', 'white')
+            // 设置字体大小
+            .attr('font-size', '15px')
+            // 后续为文字设置为矩形正中间
+            .attr('text-anchor', 'middle')
+            // 设置x的与矩形一样
+            .attr('x', function (d, i) {
+                return xScale(d.month) + rectPadding/2;
+            })
+            .attr('dx', (xScale.bandwidth() - rectPadding)/2)
+            .attr('dy', '1em')
+            .text(function (d) {
+                return d.value;
+            })
+            .attr("y",function(d){
+                var min = yScale.domain()[0];
+                return yScale(min);
+            })
+            .transition()
+            .delay(function(d,i){
+                return i * 20;
+            })
+            .duration(2000)
+            .ease(d3.easeBounce)
+            .attr("y",function(d){
+                return yScale(d.value)-30;
+            });
+
+        exitText.remove();
+
+        var line = d3.line()
+            // .interpolate("linear")
+            .x(function(d) { return padding.left + xScale(d.x) + xScale.bandwidth()/2; })
+            .y(function(d) { return padding.top + yScale(d.y); });
+
+        let updateLine = svg.selectAll('.line')
+            .data(data);
+        // 获取矩形的enter部分
+        let enterLine = updateRect.enter();
+        // 获取矩形的exit部分
+        let exitLine = updateRect.exit();
+
+        updateLine.attr("class", "line")
+            .attr("clip-path", "url(#clip)")
+            .transition()
+            .delay(function(d,i){
+                return i * 200;
+            })
+            .attr('stroke', function(d,i){
+                return 'yellow';
+            })
+            .attr("d", line);
+
+        enterLine.append("path")
+            .attr("class", "line")
+            .transition()
+            .delay(function(d,i){
+                return i * 200;
+            })
+            .attr("clip-path", "url(#clip)")
+            .attr('stroke', function(d,i){
+                return colors[i%colors.length];
+            })
+            .attr("d", line);
+
+        exitLine.remove();
+
+        svg.selectAll('.line')
+            .data(data)
+            .enter()
+            .append("path")
+            .attr("class", "line")
+            .transition()
+            .delay(function(d,i){
+                return i * 200;
+            })
+            .attr("clip-path", "url(#clip)")
+            .attr('stroke', function(d,i){
+                return colors[i%colors.length];
+            })
+            .attr("d", line);
+
+
+        let updateDot = svg.selectAll('circle')
+            .data(data[0]);
+        // 获取矩形的enter部分
+        let enterDot = updateDot.enter();
+        // 获取矩形的exit部分
+        let exitDot = updateDot.exit();
+
+        updateDot.style("fill", "yellow")
+            .attr("r", 5)
+            // .attr("cx", function(d) { return padding.left + xScale(d.x) + xScale.rangeBand()/2; })
+            // .attr("cy", function(d) { return 0; })
+            // .transition()
+            // .delay(function(d,i){
+            //     return i * 200;
+            // })
+            .attr("cx", function(d) { return padding.left + xScale(d.x) + xScale.bandwidth()/2; })
+            .attr("cy", function(d) { return padding.top + yScale(d.y); })
+            .on("click",(e)=>{console.log(e)});
+
+        enterDot.append("circle")
+            .style("fill", "yellow")
+            .attr("r", 5)
+            // .attr("cx", function(d) { return padding.left + xScale(d.x) + xScale.rangeBand()/2; })
+            // .attr("cy", function(d) { return 0; })
+            // .transition()
+            // .delay(function(d,i){
+            //     return i * 200;
+            // })
+            .attr("cx", function(d) { return padding.left + xScale(d.x) + xScale.bandwidth()/2; })
+            .attr("cy", function(d) { return padding.top + yScale(d.y); })
+            .on("click",(e)=>{console.log(e)});
+
+        exitDot.remove();
+
+        //定义x轴
+        // xAxis = d3.svg.axis()
+        //     .scale(xScale)
+        //     .orient("bottom");
+
+        var xAxis = d3.axisBottom()
+            .scale(xScale);
+
+        //定义y轴
+        // yAxis = d3.svg.axis()
+        //     .scale(yScale)
+        //     .orient("left");
+
+        var yAxis = d3.axisLeft()
+            .scale(yScale)
+            .tickFormat(d3.format(".3s"));
+
+        svg.selectAll('g').remove();
+
+        //添加x轴
+        svg.append("g")
+            .attr('fill', 'white')
+            .attr("class","x_axis")
+            .attr("transform","translate(" + padding.left + "," + (height - padding.bottom) + ")")
+            .call(xAxis);
+
+        //添加y轴
+        svg.append("g")
+            .attr('fill', 'white')
+            .attr("class","y_axis")
+            .attr("transform","translate(" + padding.left + "," + padding.top + ")")
+            .call(yAxis);
+
+    }
+</script>
+<script>
+    draw([{month:"Jan",value:20},{month:"Feb",value:20},{month:"Mar",value:25},{month:"Apr",value:56},{month:"May",value:48},{month:"Jun",value:37}])
+    draw([{month:"Jan",value:20},{month:"Feb",value:20},{month:"Mar",value:25},{month:"Apr",value:56},{month:"May",value:48},{month:"Jun",value:37}])
+    // draw([26,21,26,28,20,20,20,20,20,40,15,40])
+</script>
+<script>
+    function t() {
+        draw([{month:"Jan",value:50},{month:"Feb",value:24},{month:"Mar",value:10},{month:"Apr",value:16},{month:"May",value:78},{month:"Jun",value:17}])
+    }
+
+    svg.selectAll('rect').on("click", console.log(0));
+</script>
+</body>
+</html>
